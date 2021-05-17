@@ -1,0 +1,32 @@
+- name: Install iptables
+  yum: name=iptables-services
+
+- name: Stop and disable firewalld
+  service: name=firewalld state=stopped enabled=false
+
+- name: Make sure there is an iptables rules file (1/2)
+  stat: path=/etc/sysconfig/iptables
+  register: iptables
+
+- name: Make sure there is an iptables rules file (2/2)
+  copy:
+    src: iptables
+    dest: /etc/sysconfig/iptables
+  when: not (iptables.stat.exists|bool)
+
+- name: Open ports to enable dev machine to interact with back-end services
+  lineinfile: dest=/etc/sysconfig/iptables
+                  regexp="^-A INPUT -p {{item.protocol}} -m {{item.protocol}} --dport {{item.port}} -j ACCEPT$"
+                  line="-A INPUT -p {{item.protocol}} -m {{item.protocol}} --dport {{item.port}} -j ACCEPT"
+                  insertafter="^:OUTPUT ACCEPT \[\d*:\d*\]$"
+  with_items:
+        - { protocol: tcp, port: 80 }   # http
+        - { protocol: tcp, port: 443 }  # https
+        - { protocol: tcp, port: 8080 } # dataverse
+        - { protocol: tcp, port: 4848 } # glassfish admin console
+        - { protocol: tcp, port: 8000 } # handle admin console
+        - { protocol: tcp, port: 8888 } # miniverse
+        - { protocol: tcp, port: 1080 } # mailcatcher
+
+  notify:
+        - restart iptables

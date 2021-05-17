@@ -1,0 +1,15 @@
+- name: Get HOME dir
+  become: no
+  local_action: command echo -n $HOME
+  register: out
+
+- set_fact:
+    local_homedir: '{{ out.stdout }}'
+
+- name: Copy from ansible-vault project
+  copy:
+    src: "{{ local_homedir }}/git/ansible-vault/dataverse-dans/{{ openssl_cert.cert_file_base }}{{ item.base_ext }}.{{ item.ext }}"
+    dest: "{{ openssl_cert.tls_dir }}/{{ item.tls_subdir }}/{{ openssl_cert.cert_file_base }}{{ item.base_ext }}.{{ item.ext }}"
+  with_items:
+    - { tls_subdir: 'certs', base_ext: '_cert', ext: 'cer' }
+    - { tls_subdir: 'private', base_ext: '', ext: 'key' }

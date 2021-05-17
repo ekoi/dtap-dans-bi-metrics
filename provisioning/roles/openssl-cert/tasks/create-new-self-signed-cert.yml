@@ -1,0 +1,7 @@
+- name: Generate self-signed certificate
+  command: >-
+    openssl req -new -nodes -x509 -subj "/C=NL/ST=Zuid-Holland/L=Den Haag/O=DANS/CN={{ openssl_cert.hostname }}"
+    -days {{ openssl_cert.validity_days }} -keyout {{ openssl_cert.key_file }}
+    -out {{ openssl_cert.cert_file }} -extensions v3_ca
+  args:
+    creates: "{{ openssl_cert.cert_file }}"

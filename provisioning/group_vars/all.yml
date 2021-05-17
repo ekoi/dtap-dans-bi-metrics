@@ -1,0 +1,2 @@
+local_tmp_dir: "{{ lookup('env','TMPDIR') }}"
+local_home_dir: "{{ lookup('env','HOME') }}"

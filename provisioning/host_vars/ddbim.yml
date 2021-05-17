@@ -1,0 +1,8 @@
+### Development server (vagrant VM)
+
+# Local location for copied data files structures and database production
+local_tmp_dir: "/tmp"
+
+# apache_httpd
+apache_httpd_hostname: "ddbim.dans.knaw.nl"
+apache_httpd_conf: "ddvn.dans.knaw.nl.conf"

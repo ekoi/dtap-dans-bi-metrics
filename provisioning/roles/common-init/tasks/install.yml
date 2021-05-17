@@ -1,0 +1,113 @@
+- name: Install EPEL repo
+  yum:
+    name: epel-release
+
+- name: Install commonly required packages
+  yum:
+    name:
+     - tmux
+     - tree
+     - psmisc
+     - unzip
+     - yum-utils
+     - java-11-openjdk
+     - mailx
+     - mlocate
+     - setroubleshoot-server
+     - setroubleshoot-plugins
+     - setools
+     - at
+     - nano
+     - python3
+     - python3-psycopg2
+
+- name: Set CET as timezone
+  file:
+    src: "/usr/share/zoneinfo/CET"
+    dest: "/etc/localtime"
+    state: link
+    force: yes
+
+- name: Update locate db
+  command: updatedb
+
+- name: Enable SELinux
+  selinux:
+     policy: targeted
+     state: enforcing
+
+- name: Enable Apache HTTP Server to relay calls to back-end services
+  seboolean:
+    name: '{{ item }}'
+    state: yes
+    persistent: yes
+  with_items:
+    - httpd_can_network_connect
+    - httpd_can_network_relay
+
+- name: Create /opt/bin
+  file:
+    path: "/opt/bin"
+    state: directory
+    seuser: system_u
+
+- name: Add /opt/bin to PATH
+  copy:
+    src: add-opt.sh
+    dest: "/etc/profile.d/"
+
+- name: Create funcadmin group
+  group:
+    name: funcadmin
+
+- name: Create funcadmin users
+  user:
+    name: "{{ item }}"
+    groups: funcadmin,systemd-journal
+    append: yes
+  with_items: "{{ common_init.funcadmin_users }}"
+
+- name: Copy sudoer file to server
+  copy:
+    src: funcadmin
+    dest: /tmp
+
+- name: Set sudo permissions for funcadmin
+  copy:
+    src: /tmp/funcadmin
+    remote_src: yes
+    dest: /etc/sudoers.d/
+    validate: "visudo -cf %s"
+
+- name: funcadmin access to DANS config files
+  file:
+    path: "/etc/opt/dans.knaw.nl"
+    state: "directory"
+    group: "funcadmin"
+    mode: "0755"
+    recurse: yes
+
+- name: funcadmin read access to DANS log files
+  file:
+    path: "/var/opt/dans.knaw.nl/log"
+    group: "funcadmin"
+    state: "directory"
+    mode: "0755"
+    recurse: yes
+
+- name: Find out if Apache logging dir is already present
+  stat:
+    path: /var/log/httpd
+  register: result
+
+- name: Make sure the Apache log directory is readable
+  file:
+    path: /var/log/httpd
+    mode: "o+rx"
+  when: result.stat.exists|bool
+
+- name: Turn NTP on
+  command: /usr/bin/timedatectl set-ntp true
+
+- name: use RTC in UTC
+  command: /usr/bin/timedatectl set-local-rtc 0

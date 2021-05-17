@@ -1,0 +1,5 @@
+- import_tasks: 'create-new-self-signed-cert.yml'
+  when: openssl_cert.create_new|bool and openssl_cert.self_signed|bool
+
+- import_tasks: 'upload-existing-self-signed-cert.yml'
+  when: (not openssl_cert.create_new|bool) and openssl_cert.self_signed|bool
