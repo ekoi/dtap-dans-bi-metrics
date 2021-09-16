@@ -2,6 +2,10 @@
   yum:
     name: epel-release
 
+- rpm_key:
+    state: present
+    key: https://download.postgresql.org/pub/repos/yum/RPM-GPG-KEY-PGDG
+
 - name: Install commonly required packages
   yum:
     name:
@@ -10,7 +14,7 @@
      - psmisc
      - unzip
      - yum-utils
-     - java-11-openjdk
+     - java-1.8.0-openjdk
      - mailx
      - mlocate
      - setroubleshoot-server
@@ -18,8 +22,18 @@
      - setools
      - at
      - nano
+     - telnet
      - python3
      - python3-psycopg2
+     - gcc
+     - gcc-c++
+     - libffi-devel
+     - python3-devel
+     - python3-pip
+     - python3-wheel
+     - openssl-devel
+     - cyrus-sasl-devel
+     - openldap-devel
 
 - name: Set CET as timezone
   file:

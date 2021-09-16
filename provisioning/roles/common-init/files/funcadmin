@@ -1,17 +1,8 @@
 %funcadmin  ALL= \
     /usr/bin/yum * dans*, \
-    /usr/bin/systemctl * solr, \
     /usr/bin/systemctl * httpd, \
     /usr/bin/systemctl * postgresql, \
     /usr/bin/systemctl * dd-*, \
-    /usr/bin/systemctl * easy-*, \
-    /usr/bin/systemctl * payara, \
     /usr/bin/systemctl daemon-reload, \
     /usr/bin/journalctl -u httpd, \
-    /usr/bin/journalctl -r -u httpd, \
-    /usr/bin/journalctl -u solr, \
-    /usr/bin/journalctl -r -u solr, \
-    /usr/bin/journalctl -u payara, \
-    /usr/bin/journalctl -r -u payara, \
-    /bin/su solr, \
-    /bin/su postgres
+    /usr/bin/journalctl -r -u httpd

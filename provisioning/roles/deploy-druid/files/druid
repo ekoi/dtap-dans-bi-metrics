@@ -1,0 +1,6 @@
+export DRUID_HOME=/opt/druid
+export DRUID_BASE=/opt/druid
+
+DRUID_USER=druid
+DRUID_GROUP=druid
+JAVA_OPTIONS="-Xmx2048M"

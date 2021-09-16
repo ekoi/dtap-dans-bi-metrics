@@ -1,2 +1,73 @@
-local_tmp_dir: "{{ lookup('env','TMPDIR') }}"
-local_home_dir: "{{ lookup('env','HOME') }}"
+#
+# Global variables.
+#
+
+dans_yum_repos_enabled:
+  - "dans.knaw.nl-releases"
+#  - "dans.knaw.nl-snapshots"
+# - "local"
+
+#
+# Passwords
+#
+
+password_s3_access_key: '4cc355_k3y'
+password_s3_secret_key: 's3cr3t_4cc355_k3y'
+
+#
+# Shared variables are intended to be passed to several roles. They should *not* be used inside roles directly.
+#
+
+shared_hostname: ""
+shared_dd_source_dir: "~/git/service/dataverse-dans"
+shared_dans_config_base: "/etc/opt/dans.knaw.nl"
+shared_ssl_cert_tls_dir: "/etc/pki/tls"
+shared_ssl_cert_file_base: "{{ shared_hostname|replace('.','_') }}"
+shared_ssl_cert_file: "{{ shared_ssl_cert_tls_dir }}/certs/{{ shared_ssl_cert_file_base }}_cert.cer"
+shared_ssl_key_file: "{{ shared_ssl_cert_tls_dir}}/private/{{ shared_ssl_cert_file_base }}.key"
+shared_ssl_interm_file: "{{ shared_ssl_key_file }}"
+shared_service_initial_heap_size: "64m"
+shared_s3_region: 'NL'
+shared_s3_bucket_name: ''
+shared_funcadmin_users: []
+
+#
+# Role parameters.
+#
+# These variables are used inside the roles. The DANS-convention is to name the top-level var after the role, replacing
+# dashes with underscores, and then nest other variables in it. Because of the setting 'hash_behaviour = merge'
+# in ansible.cfg, in a more specific vars-file you can selectively override variables in this tree of dictionaries, e.g.,
+#
+# local_yum_repo:
+#    dirname: ".some-other-dir"
+#
+
+#
+# Basic system config
+#
+
+common_init:
+  funcadmin_users: "{{ shared_funcadmin_users }}"
+
+local_yum_repo:
+  project_basedir_from_host_machine: ".."
+  project_basedir_from_vagrant_box: "/vagrant"
+  rpms_glob_patterns:
+    - "{{ shared_dd_source_dir }}/*/target/rpm/*/RPMS/noarch/*.rpm"
+    - "{{ shared_dd_source_dir }}/*/*/target/rpm/*/RPMS/noarch/*.rpm"
+  dirname: ".dans.knaw.nl-yum-repo"
+
+openssl_cert:
+  self_signed: no
+  create_new: no
+  hostname: "{{ shared_hostname }}"
+  validity_days: 365
+  tls_dir: "{{ shared_ssl_cert_tls_dir }}"
+  cert_file_base: "{{ shared_ssl_cert_file_base }}"
+  cert_file: "{{ shared_ssl_cert_file }}"
+  key_file: "{{ shared_ssl_key_file }}"
+
+selinux_contexts:
+    - { target: '/opt/druid/apache-druid-{{ druid_version }}(/.*)?', setype: 'tmp_t' }
+selinux_restorecon_dirs:
+  - '/opt/druid/apache-druid-{{ druid_version }}'

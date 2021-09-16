@@ -1,0 +1,94 @@
+# Install Druid
+- name: Add a new user druid
+  user:
+    name: "{{ druid_user }}"
+    home: /opt/{{ druid_user }}
+    system: yes
+    create_home: no
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ druid_user }}"
+    group: "{{ druid_group }}"
+    mode: 0775
+  with_items:
+    - /opt/druid
+- name: Check if Druid has been downloaded and extracted already.
+  stat:
+    path: /tmp/apache-druid-{{ druid_version }}-bin.tar.gz
+  register: druid_install_path_status
+- name: Download Apache Druid tarball
+  get_url:
+    url: https://apache.mirror.wearetriple.com/druid/{{ druid_version }}/apache-druid-{{ druid_version }}-bin.tar.gz
+    dest: /tmp/
+    mode: 755
+  when: druid_install_path_status.stat.isdir is not defined
+  register: druid_download_status
+
+- name: Extract Apache Druid to /tmp/
+  command: chdir=/tmp /bin/tar xzf /tmp/apache-druid-{{ druid_version }}-bin.tar.gz
+  args:
+    warn: true
+  when: druid_download_status.changed
+  register: druid_extracted_status
+
+- name: Move Apache Druid to /tmp/
+  command: mv /tmp/apache-druid-{{ druid_version }} /opt/druid
+  args:
+    warn: true
+  when: druid_extracted_status.changed
+
+#- name: Create a symbolic link to /opt/druid
+#  file:
+#    dest: /usr/local/bin/druid/apache-druid-{{ druid_version }}/bin/start-nano-quickstacrt
+#    src: /opt/druid/apache-druid-{{ druid_version }}/bin/start-nano-quickstart
+#    state: link
+
+
+- name: Ensure directories are 0755
+  command: find /opt/druid -type d -exec chmod 0755 {} \;
+
+- name: Ensure the directories owner is druid
+  command: chown -R druid:druid /opt/druid
+
+- name: Ensure start-nano-quickstart is executable
+  command: chmod +x /opt/druid/apache-druid-{{ druid_version }}/bin/start-nano-quickstart
+
+- name: Ensure bin/supervise is executable
+  command: chmod +x /opt/druid/apache-druid-{{ druid_version }}/bin/supervise
+
+- name: SELinux
+  command:  chcon -R -t bin_t /opt/druid/apache-druid-{{ druid_version }}/bin
+
+## Install service script
+- name: Copy druid-srv script
+  template:
+    src: druid-srv.service
+    dest: /etc/systemd/system/druid-srv.service
+    mode: 0755
+- name: Give insecure permissions to an existing file
+  ansible.builtin.file:
+    path: /etc/systemd/system/druid-srv.service
+    owner: druid
+    group: druid
+    mode: '0755'
+#
+- name: Reload systemd
+  shell: systemctl daemon-reload
+#
+## Start service
+- service:
+    name: druid-srv
+    enabled: yes
+    state: started
+
+#- name: Check if druid is completely started
+#  uri:
+#    url: "http://localhost:3030/$/datasets/"
+#    method: GET
+#    status_code: [200]
+#  register: fuseki_response_code
+#  until: fuseki_response_code.status == 200
+#  retries: 10
+#  delay: 2

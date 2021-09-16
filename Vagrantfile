@@ -25,7 +25,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             ddbim.vm.box = "pre-provisioned-" + ddbim_base_box
             ddbim.vm.box_url = ddbim_base_box
         end
-        ddbim.vm.hostname = "dar"
+        ddbim.vm.hostname = "bim"
         ddbim.vm.network :private_network, ip: "192.168.33.20"
     end
 
@@ -35,7 +35,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         ansible.playbook = "provisioning/sites.yml"
         ansible.config_file = "provisioning/ansible.cfg"
         ansible.inventory_path = "provisioning/hosts"
-        ansible.galaxy_role_file = "provisioning/requirements.yml"
+#         ansible.galaxy_role_file = "provisioning/requirements.yml"
         ansible.ask_vault_pass = true if (!ENV["REUSE_CERT"].nil? && ENV["REUSE_CERT"] == "true")
         ansible.extra_vars["openssl_cert"] = { "self_signed" => true, "create_new" => false } if (!ENV["REUSE_CERT"].nil? && ENV["REUSE_CERT"] == "true")
         # Output as much as you can, or comment this out for silence

@@ -4,15 +4,21 @@
     - common-init
     - install-local-facts
 
-- hosts: local_boxes
+- hosts: ddbim
   become: yes
   roles:
-    - add-host-references
+#    - add-host-references
     - configure-yum-repo
     - local-yum-repo
+    - install-local-facts
     - openssl-cert
+    - install-httpd
+    - deploy-druid
+    - deploy-superset
 
-- hosts:
-    - dev_archaeology
-  become: yes
-  roles:
+#- hosts:
+#    - dev_bi_metrics
+#  become: yes
+#  roles:
+#    - install-local-facts
+#    - configure-yum-repo

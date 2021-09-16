@@ -1,0 +1,12 @@
+#superset.service
+###########
+[Unit]
+Description=Visualization platform by Chrono
+After=multi-user.target
+[Service]
+Type=simple
+User=vagrant
+ExecStart=/etc/init.d/superset.sh
+[Install]
+
+WantedBy=default.target

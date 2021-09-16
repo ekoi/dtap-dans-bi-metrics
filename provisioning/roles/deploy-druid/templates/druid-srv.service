@@ -1,0 +1,12 @@
+[Unit]
+Description=Druid
+
+[Service]
+WorkingDirectory=/opt/druid/apache-druid-{{ druid_version }}
+User=druid
+ExecStart=/opt/druid/apache-druid-{{ druid_version }}/bin/start-nano-quickstart
+Restart=on-failure
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

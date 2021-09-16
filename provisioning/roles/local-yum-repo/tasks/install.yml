@@ -1,0 +1,20 @@
+- name: Create local yum repo dir
+  file:
+    path: "{{ local_yum_repo.project_basedir_from_vagrant_box }}/{{ local_yum_repo.dirname }}"
+    state: directory
+
+#- debug:
+#    msg: "Copying RPMs to local repo. Errors below may mean there is nothing to copy."
+
+#- name: Copy RPMs
+#  become: no
+#  local_action: shell cp -R {{ item }} {{ local_yum_repo.project_basedir_from_host_machine }}/{{ local_yum_repo.dirname }}/
+#  ignore_errors: yes
+#  with_items: "{{ local_yum_repo.rpms_glob_patterns }}"
+
+- name: Install the createrepo tool
+  yum:
+    name: createrepo
+
+- name: Update repo
+  command: createrepo --update {{ local_yum_repo.project_basedir_from_vagrant_box }}/{{ local_yum_repo.dirname }}

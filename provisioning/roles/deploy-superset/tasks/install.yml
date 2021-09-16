@@ -1,0 +1,85 @@
+- name: Create a symbolic link to  /usr/bin/python
+  file:
+    src: /usr/bin/python3.6
+    dest:  /usr/bin/python
+    state: link
+
+- name: Create a symbolic link to  /usr/bin/pip3
+  file:
+    src:  /usr/bin/pip3
+    dest:  /usr/bin/pip
+    state: link
+
+- name: Install virtualenv
+  command: pip install virtualenv
+
+- name: Add a new user superset
+  user:
+    name: "{{ superset_user }}"
+    home: /opt/{{ superset_user }}
+    system: yes
+    create_home: no
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ superset_user }}"
+    group: "{{ superset_user }}"
+    mode: 0775
+  with_items:
+    - /opt/superset
+
+- name: Install virtualenv superset_env and install superset
+  become: yes
+  become_user: vagrant
+  shell: virtualenv superset_env && cd superset_env && source bin/activate
+          && pip install --upgrade setuptools pip
+          && pip install dataclasses
+          && pip install Pillow
+          && pip install apache-superset
+          && pip install pydruid
+          && superset fab create-admin --username admin --firstname Eko --lastname Indarto --email eko.indarto@dans.knaw.nl --password d@ns2021
+          && superset db upgrade
+          && superset init
+
+## Install service script
+- name: Copy superset-shell script
+  template:
+    src: superset.sh
+    dest:  /etc/init.d/superset.sh
+    mode: a+x
+- name: Copy superset-srv script
+  template:
+    src: superset-srv.service
+    dest: /etc/systemd/system/superset-srv.service
+    mode: 0755
+#
+#- name: Give insecure permissions to an existing file
+#  ansible.builtin.file:
+#    path: /etc/systemd/system/superset-srv.service
+#    owner: vagrant
+#    group: vagrant
+#    mode: '0755'
+
+- name: Reload systemd
+  shell: systemctl daemon-reload
+#
+## Start service
+- service:
+    name: superset-srv
+    enabled: yes
+    state: started
+
+- name: Copy superset.conf to httpd conf.d
+  template:
+    src: superset.conf
+    dest:  /etc/httpd/conf.d/superset.conf
+
+- name: restart http service ====== SUPERSET
+  service:
+    name: "httpd"
+    state: restarted
+    enabled: yes
+  register: restart
+- debug:
+    var: restart.stdout
